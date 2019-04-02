@@ -49,16 +49,16 @@ int startTime;
 int offTime;
 int doneTimer;
 bool notificationNotSent = false;
-int count=0;
-bool triggered=false;
-int offValue =100;
+int count = 0;
+bool triggered = false;
+int offValue = 100;
 int spinValue = 200;
 int crazyValue = 300;
-short pastStates [] = {0,0,0};
+short pastStates [] = {0, 0, 0};
 short currentState = 0;
 short currentCondition = 0;
 short lastCondition = 0;
-short statesSum=0;
+short statesSum = 0;
 short cycleCount = 0;
 // You should get Auth Token in the Blynk App.
 // Go to the Project Settings (nut icon).
@@ -66,20 +66,20 @@ char auth[] = "b77bff51e7c24e68bf323dcef5827478";
 //char ipAddress[] = "192.168.43.235";
 // Your WiFi credentials.
 // Set password to "" for open networks.
-char ssid[] = "BYUI_Visitor";
-char pass[] = "";
+String ssid;// = "BYUI_Visitor";
+String pass;// = "";
 
 //WidgetLCD lcd(V7);
 WidgetLED offLED(V4);
 WidgetLED spinLED(V5);
 WidgetLED crazyLED(V6);
 WidgetLED doneLED(V8);
-void notifications(){
-  if(currentCondition != lastCondition){
-    //lcd.clear();  
+void notifications() {
+  if (currentCondition != lastCondition) {
+    //lcd.clear();
   }
-  
-  switch(currentCondition){
+
+  switch (currentCondition) {
     case 0:
       offLED.on();
       spinLED.off();
@@ -100,86 +100,118 @@ void notifications(){
       Blynk.notify("Going Crazy");
       break;
   }
-  
-  
-}
 
-void setup()
-{
-  // Debug console
-  Serial.begin(9600);
-  pinMode(dPin,INPUT);
-  Blynk.begin(auth, ssid, pass);
-  //timer.setInterval(1000L, myTimerEvent)
-  offLED.on();
-  spinLED.off();
-  crazyLED.off();
-  doneLED.off();
-  offTime = millis();
+
 }
-BLYNK_CONNECTED(){
-  Blynk.syncVirtual(V1);
-  Blynk.syncVirtual(V2);
-  Blynk.syncVirtual(V3);
-}
-BLYNK_WRITE(V1){
-  offValue = param.asInt();
-  offValue = offValue * 1000;
-}
-BLYNK_WRITE(V2){
-  spinValue = param.asInt();
-  spinValue = spinValue * 1000;
-}
-BLYNK_WRITE(V3){
-  doneTimer = param.asInt();
-  doneTimer *= 1000;
-}
-void loop()
-{
-  
-   startTime = millis();
-  while (startTime + 1000 > millis()){
-    sensorValue = digitalRead(dPin);
-    if(sensorValue && !triggered){
-      triggered = true;
+void wifiSetup() {
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+  delay(100);
+
+  Serial.println("Setup done");
+  int n = WiFi.scanNetworks();
+  for (int i = 0; i < n; i++) {
+    if (String(WiFi.SSID(i)) == "AYoungWifi") {
+      ssid = String(WiFi.SSID(i));
+      pass = "7857665659";
+      break;
     }
-    else if(sensorValue && triggered){
-      count++;
-      triggered = false;
-      
+    else if (String(WiFi.SSID(i)) == "BYUI_Visitor") {
+      ssid = String(WiFi.SSID(i));
+      pass = "";
+      break;
     }
-  }
-  //sensorValue = digitalRead(dPin);
-  //Serial.println(count);
-  lastCondition = currentCondition;
-  if(count >= 0 && count < offValue){
-    //Serial.println("OFF");
-    currentCondition = 0;
-    if(offTime + doneTimer < millis() && notificationNotSent){
-      doneLED.on();
-      Blynk.notify("Washer is done");
-      notificationNotSent = false;
+    else if (String(WiFi.SSID(i)) == "CenturyLink3903") {
+      ssid = String(WiFi.SSID(i));
+      pass = "7857665659";
+      break;
     }
+    //Serial.println(WiFi.SSID(i));
     
   }
-  else if (count >= offValue && count < spinValue){
-    //Serial.println("Spin Cycle");
-    currentCondition = 1;
-    offTime = millis();
-    doneLED.off();
-    notificationNotSent = true;
-  }
-  else if (count >= spinValue ){
-    //Blynk.notify("The washer is going crazy");
-    currentCondition = 2;
-    offTime = millis();
-    doneLED.off();
-    notificationNotSent = true;
-  }
-  Blynk.virtualWrite(V0, count);
-  notifications();
-  
-  Blynk.run();
-  //Serial.println(currentCondition);
-  count = 0;
 }
+  void setup()
+  {
+    // Debug console
+    Serial.begin(9600);
+    pinMode(dPin, INPUT);
+    wifiSetup();
+    Blynk.begin(auth, ssid.c_str(), pass.c_str());
+    //timer.setInterval(1000L, myTimerEvent)
+    offLED.on();
+    spinLED.off();
+    crazyLED.off();
+    doneLED.off();
+    offTime = millis();
+  }
+  BLYNK_CONNECTED() {
+    Blynk.syncVirtual(V1);
+    Blynk.syncVirtual(V2);
+    Blynk.syncVirtual(V3);
+  }
+  BLYNK_WRITE(V1) {
+    offValue = param.asInt();
+    offValue = offValue * 1000;
+  }
+  BLYNK_WRITE(V2) {
+    spinValue = param.asInt();
+    spinValue = spinValue * 1000;
+  }
+  BLYNK_WRITE(V3) {
+    doneTimer = param.asInt();
+    doneTimer *= 1000;
+  }
+  void loop()
+  {
+
+    startTime = millis();
+    while (startTime + 1000 > millis()) {
+      sensorValue = digitalRead(dPin);
+      if (sensorValue && !triggered) {
+        triggered = true;
+      }
+      else if (sensorValue && triggered) {
+        count++;
+        triggered = false;
+
+      }
+    }
+    //sensorValue = digitalRead(dPin);
+    //Serial.println(count);
+    lastCondition = currentCondition;
+    if (count >= 0 && count < offValue) {
+      //Serial.println("OFF");
+      currentCondition = 0;
+      if (offTime + doneTimer < millis() && notificationNotSent) {
+        doneLED.on();
+        Blynk.notify("Washer is done");
+        notificationNotSent = false;
+      }
+
+    }
+    else if (count >= offValue && count < spinValue) {
+      //Serial.println("Spin Cycle");
+      currentCondition = 1;
+      offTime = millis();
+      doneLED.off();
+      notificationNotSent = true;
+    }
+    else if (count >= spinValue ) {
+      //Blynk.notify("The washer is going crazy");
+      currentCondition = 2;
+      offTime = millis();
+      doneLED.off();
+      notificationNotSent = true;
+    }
+    Blynk.virtualWrite(V0, count);
+    notifications();
+
+    Blynk.run();
+    //Serial.println(currentCondition);
+    if(!Blynk.connected()){
+      Blynk.disconnect();
+      wifiSetup();
+      Blynk.begin(auth, ssid.c_str(), pass.c_str());
+    }
+    count = 0;
+  }
