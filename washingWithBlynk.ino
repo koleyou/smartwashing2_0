@@ -113,7 +113,7 @@ void wifiSetup() {
   for (int i = 0; i < n; i++) {
     if (String(WiFi.SSID(i)) == "AYoungWifi") {
       ssid = String(WiFi.SSID(i));
-      pass = "7857665659";
+      pass = "******";
       break;
     }
     else if (String(WiFi.SSID(i)) == "BYUI_Visitor") {
@@ -123,7 +123,7 @@ void wifiSetup() {
     }
     else if (String(WiFi.SSID(i)) == "CenturyLink3903") {
       ssid = String(WiFi.SSID(i));
-      pass = "7857665659";
+      pass = "*****";
       break;
     }
     //Serial.println(WiFi.SSID(i));
